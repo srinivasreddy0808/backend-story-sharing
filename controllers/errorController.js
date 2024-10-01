@@ -39,7 +39,6 @@ const sendErrorProd = (err, res) => {
 
     // programming error
   } else {
-    console.log('Errror ', err);
     res.status(500).json({
       status: 'error',
       message: 'some one went very wrong',
@@ -48,7 +47,6 @@ const sendErrorProd = (err, res) => {
 };
 /// errror middle wear
 module.exports = (err, req, res, next) => {
-  console.log(err);
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 

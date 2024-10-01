@@ -23,12 +23,10 @@ const createSendToken = (user, statusCode, res) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
-  console.log('signup reached');
   const newUser = await User.create({
     userName: req.body.userName,
     password: req.body.password,
   });
-  console.log('new user', newUser);
 
   res.status(201).json({
     status: 'success',
@@ -39,7 +37,6 @@ exports.signup = catchAsync(async (req, res, next) => {
 });
 
 exports.login = catchAsync(async (req, res, next) => {
-  console.log('login reached');
   const { userName, password } = req.body;
   // check  if email and password is exists
   if (!userName || !password) {
@@ -50,13 +47,11 @@ exports.login = catchAsync(async (req, res, next) => {
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('incorrect email or password ', 401));
   }
-  console.log('login ended');
   // if every thing is ok send token to the client as http only cookie
   createSendToken(user, 200, res);
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
-  console.log('protect reached');
   // getting token and check if its there
   let token;
   if (

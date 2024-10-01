@@ -92,8 +92,6 @@ exports.updateSlide = catchAsync(async (req, res, next) => {
     return next(new AppError('Slide not found', 404));
   }
 
-  console.log('Slide updated successfully:', updatedSlide);
-
   res.status(200).json({
     status: 'success',
     data: {
