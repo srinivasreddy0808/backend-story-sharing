@@ -42,46 +42,52 @@ exports.createStory = catchAsync(async (req, res, next) => {
   });
 });
 
+// Express Route Handler
 exports.updateStory = catchAsync(async (req, res, next) => {
-  const { storyId } = req.params;
-  const updateData = req.body; // Get the data from the request body
+  const storyId = req.params.id;
+  const updatedStoryData = req.body;
 
-  // Check if the story exists
-  const story = await Story.findById(storyId);
-  if (!story) {
-    return next(
-      new AppError(
-        'Story not found or you do not have permission to update it',
-        404
-      )
-    );
-  }
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  // If the request includes slides to update
-  if (updateData.slides && updateData.slides.length > 0) {
-    // Loop through the slides array and update them individually if needed
-    for (const slideData of updateData.slides) {
-      await Slide.findByIdAndUpdate(
-        slideData._id, // Assuming each slide in updateData.slides contains its _id
-        { $set: slideData },
-        { new: true, runValidators: true }
+  try {
+    const story = await Story.findById(storyId).session(session);
+    if (!story) {
+      await session.abortTransaction();
+      return next(
+        new AppError(
+          'Story not found or you do not have permission to update it',
+          404
+        )
       );
     }
+
+    // Delete existing slides
+    await Slide.deleteMany({ _id: { $in: story.slides } }).session(session);
+
+    // Create new slides
+    const newSlides = await Slide.create(updatedStoryData.slides, { session });
+    const newSlideIds = newSlides.map((slide) => slide._id);
+
+    // Update story
+    story.slides = newSlideIds;
+    story.category = updatedStoryData.category;
+    await story.save({ session });
+
+    await session.commitTransaction();
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        story: story,
+      },
+    });
+  } catch (err) {
+    await session.abortTransaction();
+    next(err);
+  } finally {
+    await session.endSession();
   }
-
-  // Update the story with the other fields (like category) from the request body
-  const updatedStory = await Story.findByIdAndUpdate(
-    storyId,
-    { $set: updateData }, // Update the story with the new data
-    { new: true, runValidators: true }
-  ).populate('slides'); // Populating to ensure updated slides are included
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      story: updatedStory,
-    },
-  });
 });
 
 exports.getStoriesByCategory = catchAsync(async (req, res, next) => {
