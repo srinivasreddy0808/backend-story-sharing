@@ -44,7 +44,7 @@ exports.createStory = catchAsync(async (req, res, next) => {
 
 // Express Route Handler
 exports.updateStory = catchAsync(async (req, res, next) => {
-  const storyId = req.params.id;
+  const { storyId } = req.params;
   const updatedStoryData = req.body;
 
   const session = await mongoose.startSession();
