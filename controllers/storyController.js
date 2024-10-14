@@ -42,6 +42,48 @@ exports.createStory = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.updateStory = catchAsync(async (req, res, next) => {
+  const { storyId } = req.params;
+  const updateData = req.body; // Get the data from the request body
+
+  // Check if the story exists
+  const story = await Story.findById(storyId);
+  if (!story) {
+    return next(
+      new AppError(
+        'Story not found or you do not have permission to update it',
+        404
+      )
+    );
+  }
+
+  // If the request includes slides to update
+  if (updateData.slides && updateData.slides.length > 0) {
+    // Loop through the slides array and update them individually if needed
+    for (const slideData of updateData.slides) {
+      await Slide.findByIdAndUpdate(
+        slideData._id, // Assuming each slide in updateData.slides contains its _id
+        { $set: slideData },
+        { new: true, runValidators: true }
+      );
+    }
+  }
+
+  // Update the story with the other fields (like category) from the request body
+  const updatedStory = await Story.findByIdAndUpdate(
+    storyId,
+    { $set: updateData }, // Update the story with the new data
+    { new: true, runValidators: true }
+  ).populate('slides'); // Populating to ensure updated slides are included
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      story: updatedStory,
+    },
+  });
+});
+
 exports.getStoriesByCategory = catchAsync(async (req, res, next) => {
   const { categoryId } = req.params;
   const stories = await Story.find({ category: categoryId })

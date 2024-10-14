@@ -4,12 +4,18 @@ const authController = require('../controllers/authController');
 
 const router = express.Router();
 
-router.get('/', authController.protect, storyController.getAllStories);
+router.route('/').get(authController.protect, storyController.getAllStories);
 router
-  .post('/story', authController.protect, storyController.createStory)
-  .get('/story/:categoryId', storyController.getStoriesByCategory);
-router.get('/:storyId', storyController.getStoryById);
+  .route('/story')
+  .post(authController.protect, storyController.createStory);
+router
+  .route('/story/:storyId')
+  .put(authController.protect, storyController.updateStory);
+router.route('/story/:categoryId').get(storyController.getStoriesByCategory);
+router.route('/:storyId').get(storyController.getStoryById);
 
-router.patch('/story/:storyId/slide/:slideId', storyController.updateSlide);
+router
+  .route('/story/:storyId/slide/:slideId')
+  .patch(storyController.updateSlide);
 
 module.exports = router;
