@@ -63,11 +63,10 @@ exports.getStoriesByCategory = catchAsync(async (req, res, next) => {
 
 exports.updateSlide = catchAsync(async (req, res, next) => {
   const { storyId, slideId } = req.params;
-  const userId = req.user._id;
   const updateData = req.body;
 
   // Check if the story belongs to the user and includes the slide
-  const story = await Story.findOne({ _id: storyId, user: userId });
+  const story = await Story.findOne({ _id: storyId });
   if (!story) {
     return next(
       new AppError(
