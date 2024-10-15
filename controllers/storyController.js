@@ -2,6 +2,7 @@ const Story = require('../models/storyModel');
 const Slide = require('../models/slideModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const mongoose = require('mongoose');
 
 exports.getAllStories = catchAsync(async (req, res, next) => {
   // Get the user ID from the protect middleware
@@ -42,7 +43,6 @@ exports.createStory = catchAsync(async (req, res, next) => {
   });
 });
 
-// Express Route Handler
 exports.updateStory = catchAsync(async (req, res, next) => {
   const { storyId } = req.params;
   const updatedStoryData = req.body;
